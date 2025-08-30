@@ -4,20 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gamen Reader by Shafiullah</title>
-    <!-- Manifest for Android/Chrome -->
-<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
 
-<!-- iOS / Safari Home Screen -->
 <link rel="apple-touch-icon" href="icon.png">
 
-<!-- Favicon fallback -->
 <link rel="icon" href="icon.png">
 
-<!-- Theme colors -->
 <meta name="theme-color" content="#1c1b20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="My Web App">
+<meta name="apple-mobile-web-app-title" content="Gamen Reader">
 	
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,14 +81,54 @@ Example:
     "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
     "en": "I am studying Japanese."
   }
+]
+
+Do not worry, you can use AI to generate your entire story in this required format. Here is a pre-made prompt for you; just copy and paste it into your favourite AI tool.
+
+Prompt:
+
+Generate a short story in JSON format for language learning.
+
+Each story should be an array of objects ([ ]).
+
+Each object must contain:
+
+"jp" → Japanese text with furigana using <ruby>漢字<rt>かな</rt></ruby> format.
+
+"en" → English translation.
+
+Keep sentences simple, natural, and clear for learners.
+
+Output only valid JSON, no extra explanations.
+
+Example:
+
+[
+  {
+    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
+    "en": "I am studying Japanese."
+  }
 ]'></textarea>
-                <button id="load-button"
-                    class="w-full mt-6 bg-violet-600 text-white py-4 text-lg rounded-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
-                    Load Story
-                </button>
+                <div class="flex flex-row w-full mt-6 space-x-4">
+                    <button id="copy-prompt-button"
+                        class="flex-1 bg-violet-600 text-white py-4 text-lg rounded-l-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
+                        Copy Prompt
+                    </button>
+                    <button id="load-button"
+                        class="flex-1 bg-violet-600 text-white py-4 text-lg rounded-r-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
+                        Load Story
+                    </button>
+                </div>
             </div>
 
             <div id="reader-container" class="hidden w-full h-full flex flex-col justify-center">
+                <div class="absolute top-0 left-0 p-4">
+                    <button id="back-button" class="text-gray-500 hover:text-white transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="flex-grow flex flex-col justify-center items-center space-y-6 px-4">
                     <div id="reader-japanese-text" class="text-3xl md:text-4xl font-bold text-center leading-tight">
                     </div>
@@ -141,8 +177,10 @@ Example:
     <script>
         const storyInput = document.getElementById('story-input');
         const loadButton = document.getElementById('load-button');
+        const copyPromptButton = document.getElementById('copy-prompt-button'); // New button
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
+        const backButton = document.getElementById('back-button'); // New back button
         const toggleMeaningButton = document.getElementById('toggle-meaning-button');
         const japaneseText = document.getElementById('reader-japanese-text');
         const englishText = document.getElementById('reader-english-text');
@@ -154,6 +192,28 @@ Example:
         const messageText = document.getElementById('message-text');
         const closeMessageButton = document.getElementById('close-message');
 
+        const promptText = `Generate a short story in JSON format for language learning.
+
+Each story should be an array of objects ([ ]).
+
+Each object must contain:
+
+"jp" → Japanese text with furigana using <ruby>漢字<rt>かな</rt></ruby> format.
+
+"en" → English translation.
+
+Keep sentences simple, natural, and clear for learners.
+
+Output only valid JSON, no extra explanations.
+
+Example:
+
+[
+  {
+    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
+    "en": "I am studying Japanese."
+  }
+]`
         let storyData = [];
         let currentSentenceIndex = 0;
         let isMeaningVisible = true;
@@ -267,7 +327,43 @@ Example:
             }
         }
 
+        // Function to copy text to clipboard
+        function copyTextToClipboard(text) {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            tempTextArea.style.position = 'fixed'; // Avoid scrolling to bottom
+            tempTextArea.style.left = '-9999px'; // Move off-screen
+            document.body.appendChild(tempTextArea);
+            tempTextArea.focus();
+            tempTextArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showMessage("Prompt copied to clipboard!");
+                } else {
+                    showMessage("Failed to copy prompt. Please copy it manually.");
+                }
+            } catch (err) {
+                showMessage("Failed to copy prompt. Please copy it manually.");
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        function goBack() {
+            readerContainer.classList.add('hidden');
+            navigationBar.classList.add('hidden');
+            inputContainer.classList.remove('hidden');
+        }
+
         loadButton.addEventListener('click', loadStory);
+
+        // Add event listener for the new copy button
+        copyPromptButton.addEventListener('click', () => {
+            copyTextToClipboard(promptText);
+        });
+
+        // Add event listener for the new back button
+        backButton.addEventListener('click', goBack);
 
         nextButton.addEventListener('click', () => {
             if (currentSentenceIndex < storyData.length - 1) {
