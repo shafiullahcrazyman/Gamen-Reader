@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gamen Reader by Shafiullah</title>
+    <!-- Manifest for Android/Chrome -->
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS / Safari Home Screen -->
+<link rel="apple-touch-icon" href="icon.png">
+
+<!-- Favicon fallback -->
+<link rel="icon" href="icon.png">
+
+<!-- Theme colors -->
+<meta name="theme-color" content="#1c1b20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Web App">
+	
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Material You Inspired Dark Theme Palette */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1C1B1F; /* Primary Surface */
+            color: #E6E1E5; /* On Surface */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hiding the scrollbar from the textarea */
+        #story-input::-webkit-scrollbar {
+            display: none; /* For Chrome, Safari, and Opera */
+        }
+        #story-input {
+            -ms-overflow-style: none;  /* For IE and Edge */
+            scrollbar-width: none;  /* For Firefox */
+        }
+
+        /* Message box styling */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 1.5rem;
+            background-color: #2A282E; /* Surface Container */
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* Style for showing/hiding eye icons */
+        .eye-slash { display: none; }
+        .eye-open { display: block; }
+        #toggle-meaning-button.toggled .eye-slash { display: block; }
+        #toggle-meaning-button.toggled .eye-open { display: none; }
+    </style>
+</head>
+<body class="bg-[#1C1B1F] text-[#E6E1E5]">
+
+    <div class="flex-grow flex items-center justify-center w-full h-full">
+        <div id="app-content" class="flex flex-col items-center justify-center w-full h-full">
+
+            <div id="input-container" class="flex flex-col w-full h-full p-6 md:p-8">
+                <textarea id="story-input"
+                    class="flex-grow w-full p-4 text-gray-300 placeholder-gray-500 bg-transparent rounded-3xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition duration-200 resize-none"
+                    placeholder='Paste your story here in JSON format.
+Example:
+[
+  {
+    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
+    "en": "I am studying Japanese."
+  }
+]'></textarea>
+                <button id="load-button"
+                    class="w-full mt-6 bg-violet-600 text-white py-4 text-lg rounded-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
+                    Load Story
+                </button>
+            </div>
+
+            <div id="reader-container" class="hidden w-full h-full flex flex-col justify-center">
+                <div class="flex-grow flex flex-col justify-center items-center space-y-6 px-4">
+                    <div id="reader-japanese-text" class="text-3xl md:text-4xl font-bold text-center leading-tight">
+                    </div>
+                    <div id="reader-meaning-container" class="transition-opacity duration-300 w-full max-w-2xl text-center">
+                        <p id="reader-english-text" class="text-lg text-gray-400"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="navigation-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs mx-auto hidden">
+        <div class="relative bg-[#333138] rounded-full flex items-center justify-end shadow-xl p-2">
+            
+            <button id="toggle-meaning-button" class="absolute top-1/2 -translate-y-1/2 -left-1 bg-violet-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-all duration-200 z-10">
+                <svg class="h-8 w-8 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <svg class="h-8 w-8 eye-slash" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243l-4.243-4.243" />
+                </svg>
+            </button>
+    
+            <div class="flex items-center space-x-8 pr-6 pl-16">
+                <button id="prev-button" class="text-gray-500 hover:text-white transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button id="next-button" class="text-gray-500 hover:text-white transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message-box" class="message-box hidden transition-opacity duration-300 opacity-0">
+        <p id="message-text" class="mb-4 text-xl"></p>
+        <button id="close-message" class="bg-violet-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-violet-700">OK</button>
+    </div>
+
+    <script>
+        const storyInput = document.getElementById('story-input');
+        const loadButton = document.getElementById('load-button');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const toggleMeaningButton = document.getElementById('toggle-meaning-button');
+        const japaneseText = document.getElementById('reader-japanese-text');
+        const englishText = document.getElementById('reader-english-text');
+        const inputContainer = document.getElementById('input-container');
+        const readerContainer = document.getElementById('reader-container');
+        const meaningContainer = document.getElementById('reader-meaning-container');
+        const navigationBar = document.getElementById('navigation-bar');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const closeMessageButton = document.getElementById('close-message');
+
+        let storyData = [];
+        let currentSentenceIndex = 0;
+        let isMeaningVisible = true;
+
+        // Load cached story on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const cachedStory = localStorage.getItem('satori-cached-story');
+            if (cachedStory) {
+                storyInput.value = cachedStory;
+            }
+        });
+
+        function showMessage(text) {
+            messageText.textContent = text;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.remove('opacity-0'), 10);
+        }
+
+        function closeMessage() {
+            messageBox.classList.add('opacity-0');
+            setTimeout(() => messageBox.classList.add('hidden'), 300);
+        }
+
+        function speak(text, lang) {
+            if (!'speechSynthesis' in window) {
+                showMessage("Your browser does not support Text-to-Speech.");
+                return;
+            }
+
+            // If speaking, stop it
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            } else {
+                // Otherwise, start speaking
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        function renderSentence() {
+            if (storyData.length === 0) {
+                japaneseText.innerHTML = "";
+                englishText.textContent = "";
+                prevButton.disabled = true;
+                nextButton.disabled = true;
+                toggleMeaningButton.disabled = true;
+                return;
+            }
+            const sentence = storyData[currentSentenceIndex];
+
+            // Clear previous event listeners to prevent multiple clicks
+            japaneseText.onclick = null;
+            englishText.onclick = null;
+
+            japaneseText.innerHTML = sentence.jp;
+            englishText.textContent = sentence.en;
+
+            // Add new event listeners for speech
+            japaneseText.onclick = () => {
+                // Create a temporary element to hold the Japanese text
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = sentence.jp;
+                
+                // Remove all <rt> elements, which contain the furigana
+                const rubyElements = tempDiv.querySelectorAll('rt');
+                rubyElements.forEach(rt => rt.remove());
+                
+                // Get the cleaned text, which now only contains the base kanji and kana
+                const plainText = tempDiv.textContent;
+                
+                speak(plainText, 'ja-JP');
+            };
+
+            englishText.onclick = () => {
+                speak(sentence.en, 'en-GB'); // 'en-GB' for British accent
+            };
+
+            prevButton.disabled = currentSentenceIndex === 0;
+            nextButton.disabled = currentSentenceIndex === storyData.length - 1;
+            toggleMeaningButton.disabled = false;
+        }
+
+        function loadStory() {
+            const input = storyInput.value.trim();
+            if (input === "") {
+                showMessage("Please paste a story into the text area.");
+                return;
+            }
+            try {
+                const parsedData = JSON.parse(input);
+                if (Array.isArray(parsedData) && parsedData.every(item => item.jp && item.en)) {
+                    storyData = parsedData;
+                    currentSentenceIndex = 0;
+                    isMeaningVisible = true;
+                    toggleMeaningButton.classList.remove('toggled');
+                    inputContainer.classList.add('hidden');
+                    readerContainer.classList.remove('hidden');
+                    navigationBar.classList.remove('hidden');
+                    meaningContainer.classList.remove('hidden');
+                    renderSentence();
+
+                    // Save the story to local storage
+                    localStorage.setItem('satori-cached-story', input);
+
+                } else {
+                    showMessage("Invalid JSON format. Please use an array of objects with 'jp' and 'en' keys.");
+                }
+            } catch (error) {
+                showMessage("Could not parse the JSON. Please check your syntax.");
+            }
+        }
+
+        loadButton.addEventListener('click', loadStory);
+
+        nextButton.addEventListener('click', () => {
+            if (currentSentenceIndex < storyData.length - 1) {
+                currentSentenceIndex++;
+                renderSentence();
+            }
+        });
+
+        prevButton.addEventListener('click', () => {
+            if (currentSentenceIndex > 0) {
+                currentSentenceIndex--;
+                renderSentence();
+            }
+        });
+
+        toggleMeaningButton.addEventListener('click', () => {
+            isMeaningVisible = !isMeaningVisible;
+            if (isMeaningVisible) {
+                meaningContainer.classList.remove('hidden');
+                toggleMeaningButton.classList.remove('toggled');
+            } else {
+                meaningContainer.classList.add('hidden');
+                toggleMeaningButton.classList.add('toggled');
+            }
+        });
+
+        closeMessageButton.addEventListener('click', closeMessage);
+
+        renderSentence();
+    </script>
+</body>
+</html>
