@@ -5,145 +5,274 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gamen Reader by Shafiullah</title>
     <link rel="manifest" href="manifest.json">
-
-<link rel="apple-touch-icon" href="icon.png">
-
-<link rel="icon" href="icon.png">
-
-<meta name="theme-color" content="#1c1b20">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Gamen Reader">
-	
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" href="icon.png">
+    <meta name="theme-color" content="#1c1b20">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gamen Reader">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Material You Inspired Dark Theme Palette */
+        /* === THEME VARIABLES === */
+        :root {
+            --bg-body: #1C1B1F;
+            --bg-surface: #2A282E;
+            --bg-nav: #333138;
+            --text-main: #E6E1E5;
+            --text-muted: #9ca3af;
+            --border-color: rgba(55, 65, 81, 0.5);
+            --btn-copy-bg: #7c3aed; /* violet-600 */
+            --btn-copy-hover: #6d28d9; /* violet-700 */
+        }
+
+        [data-theme="light"] {
+            --bg-body: #FDFBFF;
+            --bg-surface: #F2F0F4;
+            --bg-nav: #FFFFFF;
+            --text-main: #1C1B1F;
+            --text-muted: #4B5563;
+            --border-color: #E5E7EB;
+            --btn-copy-bg: #7c3aed;
+            --btn-copy-hover: #6d28d9;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent body scroll */
+            overflow: hidden;
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1C1B1F; /* Primary Surface */
-            color: #E6E1E5; /* On Surface */
+            background-color: var(--bg-body);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Hiding the scrollbar from the textarea */
-        #story-input::-webkit-scrollbar {
-            display: none; /* For Chrome, Safari, and Opera */
-        }
-        #story-input {
-            -ms-overflow-style: none;  /* For IE and Edge */
-            scrollbar-width: none;  /* For Firefox */
-        }
+        .theme-bg-body { background-color: var(--bg-body); }
+        .theme-bg-surface { background-color: var(--bg-surface); }
+        .theme-bg-nav { background-color: var(--bg-nav); }
+        .theme-text-main { color: var(--text-main); }
+        .theme-text-muted { color: var(--text-muted); }
+        .theme-border { border-color: var(--border-color); }
 
-        /* Message box styling */
+        #story-input::-webkit-scrollbar { display: none; }
+        #story-input { -ms-overflow-style: none; scrollbar-width: none; }
+
         .message-box {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             padding: 1.5rem;
-            background-color: #2A282E; /* Surface Container */
+            background-color: var(--bg-surface);
             border-radius: 1.5rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
             text-align: center;
         }
 
-        /* Style for showing/hiding eye icons */
+        #library-list::-webkit-scrollbar { width: 6px; }
+        #library-list::-webkit-scrollbar-thumb { background-color: #49454F; border-radius: 10px; }
+        #library-list { scrollbar-width: thin; scrollbar-color: #49454F transparent; }
+
         .eye-slash { display: none; }
         .eye-open { display: block; }
         #toggle-meaning-button.toggled .eye-slash { display: block; }
         #toggle-meaning-button.toggled .eye-open { display: none; }
+
+        /* Full Screen Modal Transitions */
+        #settings-modal, #video-modal {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        #settings-modal.active, #video-modal.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .btn-copy-default { background-color: var(--btn-copy-bg); color: white; }
+        .btn-copy-default:hover { background-color: var(--btn-copy-hover); }
+        
+        .btn-copy-success { 
+            background-color: #16a34a !important; 
+            color: white !important;
+        }
     </style>
 </head>
-<body class="bg-[#1C1B1F] text-[#E6E1E5]">
+<body class="theme-bg-body theme-text-main">
 
-    <div class="flex-grow flex items-center justify-center w-full h-full">
-        <div id="app-content" class="flex flex-col items-center justify-center w-full h-full">
+    <!-- === VIDEO TUTORIAL MODAL === -->
+    <div id="video-modal" class="fixed inset-0 z-[150] theme-bg-body flex flex-col opacity-0">
+        <div class="flex items-center justify-between p-6 border-b theme-border">
+            <h2 class="text-3xl font-bold theme-text-main">Tutorial</h2>
+            <button id="close-video-button" class="p-3 rounded-full theme-bg-surface theme-text-muted hover:text-white transition-colors border theme-border">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex-grow flex items-center justify-center p-4">
+            <div id="video-container" class="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border theme-border bg-black">
+                <!-- Iframe injected here via JS -->
+            </div>
+        </div>
+    </div>
 
-            <div id="input-container" class="flex flex-col w-full h-full p-6 md:p-8">
-                <textarea id="story-input"
-                    class="flex-grow w-full p-4 text-gray-300 placeholder-gray-500 bg-transparent rounded-3xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition duration-200 resize-none"
-                    placeholder='Paste your story here in JSON format.
-Example:
-[
-  {
-    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
-    "en": "I am studying Japanese."
-  }
-]
-
-Do not worry, you can use AI to generate your entire story in this required format. Here is a pre-made prompt for you; just copy and paste it into your favourite AI tool.
-
-Prompt:
-
-Generate a short story in JSON format for language learning.
-
-Each story should be an array of objects ([ ]).
-
-Each object must contain:
-
-"jp" → Japanese text with furigana using <ruby>漢字<rt>かな</rt></ruby> format.
-
-"en" → English translation.
-
-Keep sentences simple, natural, and clear for learners.
-
-Output only valid JSON, no extra explanations.
-
-Example:
-
-[
-  {
-    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
-    "en": "I am studying Japanese."
-  }
-]'></textarea>
-                <div class="flex flex-row w-full mt-6 space-x-4">
-                    <button id="copy-prompt-button"
-                        class="flex-1 bg-violet-600 text-white py-4 text-lg rounded-l-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
-                        Copy Prompt
+    <!-- === FULL SCREEN SETTINGS MODAL === -->
+    <div id="settings-modal" class="fixed inset-0 z-[100] theme-bg-body flex flex-col opacity-0">
+        <div class="flex items-center justify-between p-6 border-b theme-border">
+            <h2 class="text-3xl font-bold theme-text-main">Settings</h2>
+            <button id="close-settings-button" class="p-3 rounded-full theme-bg-surface theme-text-muted hover:text-white transition-colors border theme-border">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="p-6 flex-grow overflow-y-auto">
+            <div class="mb-8">
+                <h3 class="text-sm font-bold theme-text-muted uppercase tracking-widest mb-4">Appearance</h3>
+                <div class="space-y-3">
+                    <button onclick="setTheme('light')" class="w-full text-left p-4 rounded-xl theme-bg-surface border theme-border flex items-center justify-between hover:border-violet-500 transition-all active:scale-[0.98]">
+                        <div class="flex items-center">
+                            <div class="bg-orange-100 p-2 rounded-lg mr-4 text-orange-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            </div>
+                            <span class="text-lg font-medium theme-text-main">Light Mode</span>
+                        </div>
                     </button>
-                    <button id="load-button"
-                        class="flex-1 bg-violet-600 text-white py-4 text-lg rounded-r-full font-semibold hover:bg-violet-700 transition-colors duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0">
-                        Load Story
+                    
+                    <button onclick="setTheme('dark')" class="w-full text-left p-4 rounded-xl theme-bg-surface border theme-border flex items-center justify-between hover:border-violet-500 transition-all active:scale-[0.98]">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-900 p-2 rounded-lg mr-4 text-indigo-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                            </div>
+                            <span class="text-lg font-medium theme-text-main">Dark Mode</span>
+                        </div>
+                    </button>
+
+                    <button onclick="setTheme('system')" class="w-full text-left p-4 rounded-xl theme-bg-surface border theme-border flex items-center justify-between hover:border-violet-500 transition-all active:scale-[0.98]">
+                        <div class="flex items-center">
+                            <div class="bg-gray-700 p-2 rounded-lg mr-4 text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            </div>
+                            <span class="text-lg font-medium theme-text-main">System Default</span>
+                        </div>
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div id="reader-container" class="hidden w-full h-full flex flex-col justify-center">
-                <div class="absolute top-0 left-0 p-4">
-                    <button id="back-button" class="text-gray-500 hover:text-white transition-colors duration-200">
+    <div class="flex-grow flex items-center justify-center w-full h-full relative">
+        
+        <!-- === HOMEPAGE (LIBRARY) === -->
+        <div id="home-container" class="flex flex-col w-full h-full p-6 md:p-8 max-w-3xl mx-auto relative">
+            
+            <div class="flex items-center justify-between mb-8 w-full relative">
+                <!-- Header Pill -->
+                <div class="bg-violet-600 text-white pl-5 pr-1 py-1 rounded-full flex items-center shadow-lg cursor-default">
+                    <span class="text-2xl font-bold tracking-tight mr-3">Gamen Reader</span>
+                    
+                    <!-- CLICKABLE VIDEO ICON -->
+                    <button id="tutorial-button" class="bg-violet-800/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-violet-700 hover:scale-110 transition-all duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white ml-0.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+
+                <button id="menu-button" class="theme-text-muted hover:text-violet-500 transition-colors p-2 rounded-full active:bg-gray-800/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="library-list" class="flex-grow overflow-y-auto space-y-4 pb-24">
+                <!-- List Items Injected Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full px-4">
+                <div class="bg-violet-600/10 p-6 rounded-full mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-violet-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <p class="text-xl font-semibold theme-text-muted mb-1">No stories yet</p>
+                <p class="text-sm theme-text-muted opacity-80">Tap the <span class="font-bold text-violet-500">+</span> button to add one!</p>
+            </div>
+
+            <button id="add-new-button" class="fixed bottom-8 right-8 bg-violet-600 text-white w-14 h-14 rounded-2xl shadow-lg shadow-violet-900/40 flex items-center justify-center hover:bg-violet-700 transition-transform transform hover:scale-105 active:scale-95 z-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- === INPUT PAGE === -->
+        <div id="input-container" class="hidden flex flex-col w-full h-full p-6 md:p-8 absolute top-0 left-0 theme-bg-body z-40">
+            <div class="flex items-center justify-between mb-4">
+                <button id="cancel-input-button" class="theme-text-muted hover:text-violet-500 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                </button>
+                <h2 class="text-xl font-semibold theme-text-main">Add a new story!</h2>
+                <div class="w-10"></div>
+            </div>
+            
+            <textarea id="story-input"
+                class="flex-grow w-full p-4 theme-text-main placeholder-gray-500 theme-bg-surface rounded-3xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition duration-200 resize-none border theme-border"
+                placeholder='Paste your JSON here... '></textarea>
+            
+            <div class="flex flex-row w-full mt-6 space-x-4">
+                <button id="copy-prompt-button"
+                    class="flex-1 btn-copy-default py-4 text-lg rounded-l-full font-semibold transition-all duration-200 flex-shrink-0 shadow-lg shadow-violet-900/40 active:scale-95">
+                    Copy Prompt
+                </button>
+                <button id="load-button"
+                    class="flex-1 bg-violet-600 text-white py-4 text-lg rounded-r-full font-semibold hover:bg-violet-700 transition-all duration-200 shadow-lg shadow-violet-900/40 flex-shrink-0 active:scale-95 active:bg-violet-800">
+                    Save & Read
+                </button>
+            </div>
+        </div>
+
+        <!-- === READER PAGE === -->
+        <div id="reader-content-wrapper" class="flex flex-col items-center justify-center w-full h-full hidden absolute top-0 left-0 theme-bg-body z-50">
+            <div id="reader-container" class="w-full h-full flex flex-col justify-center relative">
+                <div class="absolute top-0 left-0 p-4 z-50">
+                    <button id="back-button" class="theme-text-muted hover:text-violet-500 transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
                 </div>
                 <div class="flex-grow flex flex-col justify-center items-center space-y-6 px-4">
-                    <div id="reader-japanese-text" class="text-3xl md:text-4xl font-bold text-center leading-tight">
+                    <div id="reader-japanese-text" class="text-3xl md:text-4xl font-bold text-center leading-tight cursor-pointer theme-text-main hover:text-violet-500 transition-colors">
                     </div>
-                    <div id="reader-meaning-container" class="transition-opacity duration-300 w-full max-w-2xl text-center">
-                        <p id="reader-english-text" class="text-lg text-gray-400"></p>
+                    <div id="reader-meaning-container" class="transition-opacity duration-300 w-full max-w-2xl text-center cursor-pointer">
+                        <p id="reader-english-text" class="text-lg theme-text-muted hover:text-violet-500 transition-colors"></p>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
     
-    <div id="navigation-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs mx-auto hidden">
-        <div class="relative bg-[#333138] rounded-full flex items-center justify-end shadow-xl p-2">
-            
+    <div id="navigation-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs mx-auto hidden z-[60]">
+        <div class="relative theme-bg-nav rounded-full flex items-center justify-end shadow-xl p-2 border theme-border">
             <button id="toggle-meaning-button" class="absolute top-1/2 -translate-y-1/2 -left-1 bg-violet-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-all duration-200 z-10">
                 <svg class="h-8 w-8 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -153,14 +282,13 @@ Example:
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243l-4.243-4.243" />
                 </svg>
             </button>
-    
             <div class="flex items-center space-x-8 pr-6 pl-16">
-                <button id="prev-button" class="text-gray-500 hover:text-white transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
+                <button id="prev-button" class="theme-text-muted hover:text-violet-500 transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <button id="next-button" class="text-gray-500 hover:text-white transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
+                <button id="next-button" class="theme-text-muted hover:text-violet-500 transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
@@ -170,61 +298,317 @@ Example:
     </div>
 
     <div id="message-box" class="message-box hidden transition-opacity duration-300 opacity-0">
-        <p id="message-text" class="mb-4 text-xl"></p>
+        <p id="message-text" class="mb-4 text-xl theme-text-main"></p>
         <button id="close-message" class="bg-violet-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-violet-700">OK</button>
     </div>
 
     <script>
+        // DOM Elements
         const storyInput = document.getElementById('story-input');
         const loadButton = document.getElementById('load-button');
-        const copyPromptButton = document.getElementById('copy-prompt-button'); // New button
+        const copyPromptButton = document.getElementById('copy-prompt-button');
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
-        const backButton = document.getElementById('back-button'); // New back button
+        const backButton = document.getElementById('back-button');
         const toggleMeaningButton = document.getElementById('toggle-meaning-button');
         const japaneseText = document.getElementById('reader-japanese-text');
         const englishText = document.getElementById('reader-english-text');
+        
+        // Views
+        const homeContainer = document.getElementById('home-container');
         const inputContainer = document.getElementById('input-container');
+        const readerWrapper = document.getElementById('reader-content-wrapper');
         const readerContainer = document.getElementById('reader-container');
-        const meaningContainer = document.getElementById('reader-meaning-container');
         const navigationBar = document.getElementById('navigation-bar');
+        const libraryList = document.getElementById('library-list');
+        const emptyState = document.getElementById('empty-state');
+        
+        // Buttons
+        const addNewButton = document.getElementById('add-new-button');
+        const cancelInputButton = document.getElementById('cancel-input-button');
+        const menuButton = document.getElementById('menu-button');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsButton = document.getElementById('close-settings-button');
+        
+        // Video Elements
+        const tutorialButton = document.getElementById('tutorial-button');
+        const videoModal = document.getElementById('video-modal');
+        const videoContainer = document.getElementById('video-container');
+        const closeVideoButton = document.getElementById('close-video-button');
+        
+        const meaningContainer = document.getElementById('reader-meaning-container');
         const messageBox = document.getElementById('message-box');
         const messageText = document.getElementById('message-text');
         const closeMessageButton = document.getElementById('close-message');
 
-        const promptText = `Generate a short story in JSON format for language learning.
+        const promptText = `Generate a short Japanese story for language learners in JSON format.
 
-Each story should be an array of objects ([ ]).
+Rules:
+- Output ONLY valid JSON. No explanations or extra text.
+- The result must be an array [ ] of objects.
+- Each object must contain exactly two keys: "jp" and "en".
 
-Each object must contain:
+Title rule:
+- The FIRST object is the title sentence.
+- The title should be very short and simple.
+- It should describe the topic of the story.
+- It will be shown like a normal sentence in the reader.
 
-"jp" → Japanese text with furigana using <ruby>漢字<rt>かな</rt></ruby> format.
+Japanese ("jp") rules:
+- Use natural, polite Japanese.
+- Keep sentences short and beginner-friendly.
+- Use <ruby>漢字<rt>かな</rt></ruby> for ALL kanji.
+- Do NOT use romaji or English words.
 
-"en" → English translation.
+English ("en") rules:
+- Provide a clear, simple English meaning.
 
-Keep sentences simple, natural, and clear for learners.
-
-Output only valid JSON, no extra explanations.
+General:
+- Total length: 6–9 objects (1 title + story).
+- Avoid complex grammar and rare vocabulary.
 
 Example:
-
 [
   {
-    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>しています。",
-    "en": "I am studying Japanese."
+    "jp": "<ruby>小<rt>ちい</rt></ruby>さな<ruby>町<rt>まち</rt></ruby>の<ruby>生活<rt>せいかつ</rt></ruby>です。",
+    "en": "Life in a small town."
+  },
+  {
+    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>小<rt>ちい</rt></ruby>さな<ruby>町<rt>まち</rt></ruby>に<ruby>住<rt>す</rt></ruby>んでいます。",
+    "en": "I live in a small town."
   }
-]`
+]`;
+        const videoIframeHTML = `<div style="position:relative; width:100%; height:0px; padding-bottom:100.000%"><iframe allow="fullscreen;autoplay" allowfullscreen height="100%" src="https://streamable.com/e/0nwd8k?autoplay=1" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe></div>`;
+
         let storyData = [];
         let currentSentenceIndex = 0;
         let isMeaningVisible = true;
+        let library = [];
 
-        // Load cached story on page load
+        // --- Initialization ---
+
         document.addEventListener('DOMContentLoaded', () => {
-            const cachedStory = localStorage.getItem('satori-cached-story');
-            if (cachedStory) {
-                storyInput.value = cachedStory;
-            }
+            loadLibrary();
+            renderLibrary();
+            initTheme();
+            
+            history.replaceState({page: 'home'}, '', '');
+            
+            window.addEventListener('popstate', (event) => {
+                const page = event.state ? event.state.page : 'home';
+                renderPage(page);
+            });
         });
+
+        // --- Navigation Logic (Router) ---
+
+        function renderPage(page) {
+            homeContainer.classList.add('hidden');
+            inputContainer.classList.add('hidden');
+            readerWrapper.classList.add('hidden');
+            navigationBar.classList.add('hidden');
+            
+            // Handle Modals
+            settingsModal.classList.remove('active');
+            settingsModal.classList.add('hidden');
+            
+            videoModal.classList.remove('active');
+            videoModal.classList.add('hidden');
+            videoContainer.innerHTML = ""; // Stop video playback on close
+
+            if (page === 'home') {
+                homeContainer.classList.remove('hidden');
+                storyInput.value = ""; 
+            } 
+            else if (page === 'input') {
+                inputContainer.classList.remove('hidden');
+            } 
+            else if (page === 'reader') {
+                readerWrapper.classList.remove('hidden');
+                navigationBar.classList.remove('hidden');
+                renderSentence();
+            } 
+            else if (page === 'settings') {
+                settingsModal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    settingsModal.classList.add('active');
+                });
+            }
+            else if (page === 'video') {
+                videoModal.classList.remove('hidden');
+                videoContainer.innerHTML = videoIframeHTML; // Inject video
+                requestAnimationFrame(() => {
+                    videoModal.classList.add('active');
+                });
+            }
+        }
+
+        function goHome() {
+            history.back();
+        }
+
+        function goToInput() {
+            history.pushState({page: 'input'}, '', '#new');
+            renderPage('input');
+        }
+
+        function openSettings() {
+            history.pushState({page: 'settings'}, '', '#settings');
+            renderPage('settings');
+        }
+        
+        function openVideo() {
+            history.pushState({page: 'video'}, '', '#tutorial');
+            renderPage('video');
+        }
+
+        // --- Theme Logic ---
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('gamen-theme');
+            if (savedTheme === 'light' || savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                applySystemTheme();
+            }
+        }
+
+        function applySystemTheme() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+
+        function setTheme(mode) {
+            if (mode === 'system') {
+                localStorage.removeItem('gamen-theme');
+                applySystemTheme();
+            } else {
+                localStorage.setItem('gamen-theme', mode);
+                document.documentElement.setAttribute('data-theme', mode);
+            }
+            history.back();
+        }
+
+        menuButton.addEventListener('click', openSettings);
+        closeSettingsButton.addEventListener('click', () => history.back());
+        
+        // Video Listeners
+        tutorialButton.addEventListener('click', openVideo);
+        closeVideoButton.addEventListener('click', () => history.back());
+
+        // --- Library Logic ---
+
+        function loadLibrary() {
+            const stored = localStorage.getItem('gamen-library');
+            if (stored) {
+                try {
+                    library = JSON.parse(stored);
+                } catch (e) {
+                    library = [];
+                }
+            }
+        }
+
+        function saveLibrary() {
+            localStorage.setItem('gamen-library', JSON.stringify(library));
+            renderLibrary();
+        }
+
+        function generateTitle(jsonStory) {
+            if (jsonStory.length > 0 && jsonStory[0].jp) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = jsonStory[0].jp;
+                const rubyElements = tempDiv.querySelectorAll('rt');
+                rubyElements.forEach(rt => rt.remove());
+                let title = tempDiv.textContent.substring(0, 30);
+                if(tempDiv.textContent.length > 30) title += "...";
+                return title;
+            }
+            return "Untitled Story";
+        }
+
+        function deleteStory(id, event) {
+            event.stopPropagation(); 
+            if (confirm("Delete this story?")) {
+                library = library.filter(story => story.id !== id);
+                saveLibrary();
+            }
+        }
+
+        function renderLibrary() {
+            libraryList.innerHTML = '';
+            
+            if (library.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                library.slice().reverse().forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "theme-bg-surface p-4 rounded-2xl border theme-border flex justify-between items-center cursor-pointer hover:bg-opacity-80 transition-opacity";
+                    card.onclick = () => loadStoryFromLibrary(item.id);
+
+                    const dateObj = new Date(item.id);
+                    const dateStr = dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                    const timeStr = dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+                    const leftContent = document.createElement('div');
+                    leftContent.className = "flex items-center gap-4";
+
+                    const iconDiv = document.createElement('div');
+                    iconDiv.className = "p-3 rounded-xl bg-violet-600/20 text-violet-500 flex-shrink-0";
+                    iconDiv.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    `;
+
+                    const textInfo = document.createElement('div');
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = "text-lg font-semibold theme-text-main leading-tight";
+                    titleDiv.textContent = item.title || "Untitled";
+
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = "text-xs theme-text-muted mt-1";
+                    dateDiv.textContent = `${dateStr} • ${timeStr}`;
+
+                    textInfo.appendChild(titleDiv);
+                    textInfo.appendChild(dateDiv);
+
+                    leftContent.appendChild(iconDiv);
+                    leftContent.appendChild(textInfo);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = "theme-text-muted hover:text-red-400 p-2 transition-colors flex-shrink-0";
+                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                    deleteBtn.onclick = (e) => deleteStory(item.id, e);
+
+                    card.appendChild(leftContent);
+                    card.appendChild(deleteBtn);
+                    libraryList.appendChild(card);
+                });
+            }
+        }
+
+        function loadStoryFromLibrary(id) {
+            const story = library.find(s => s.id === id);
+            if (story) {
+                storyData = story.content;
+                currentSentenceIndex = 0;
+                isMeaningVisible = true;
+                
+                toggleMeaningButton.classList.remove('toggled');
+                meaningContainer.classList.remove('hidden');
+                
+                history.pushState({page: 'reader', storyId: id}, '', '#read');
+                renderPage('reader');
+            }
+        }
+
+        // --- Existing Reader Logic ---
 
         function showMessage(text) {
             messageText.textContent = text;
@@ -242,12 +626,9 @@ Example:
                 showMessage("Your browser does not support Text-to-Speech.");
                 return;
             }
-
-            // If speaking, stop it
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
             } else {
-                // Otherwise, start speaking
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = lang;
                 window.speechSynthesis.speak(utterance);
@@ -255,49 +636,33 @@ Example:
         }
         
         function renderSentence() {
-            if (storyData.length === 0) {
-                japaneseText.innerHTML = "";
-                englishText.textContent = "";
-                prevButton.disabled = true;
-                nextButton.disabled = true;
-                toggleMeaningButton.disabled = true;
-                return;
-            }
+            if (storyData.length === 0) return;
             const sentence = storyData[currentSentenceIndex];
 
-            // Clear previous event listeners to prevent multiple clicks
             japaneseText.onclick = null;
             englishText.onclick = null;
 
             japaneseText.innerHTML = sentence.jp;
             englishText.textContent = sentence.en;
 
-            // Add new event listeners for speech
             japaneseText.onclick = () => {
-                // Create a temporary element to hold the Japanese text
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = sentence.jp;
-                
-                // Remove all <rt> elements, which contain the furigana
                 const rubyElements = tempDiv.querySelectorAll('rt');
                 rubyElements.forEach(rt => rt.remove());
-                
-                // Get the cleaned text, which now only contains the base kanji and kana
                 const plainText = tempDiv.textContent;
-                
                 speak(plainText, 'ja-JP');
             };
 
             englishText.onclick = () => {
-                speak(sentence.en, 'en-GB'); // 'en-GB' for British accent
+                speak(sentence.en, 'en-GB'); 
             };
 
             prevButton.disabled = currentSentenceIndex === 0;
             nextButton.disabled = currentSentenceIndex === storyData.length - 1;
-            toggleMeaningButton.disabled = false;
         }
 
-        function loadStory() {
+        function loadAndSaveStory() {
             const input = storyInput.value.trim();
             if (input === "") {
                 showMessage("Please paste a story into the text area.");
@@ -306,18 +671,16 @@ Example:
             try {
                 const parsedData = JSON.parse(input);
                 if (Array.isArray(parsedData) && parsedData.every(item => item.jp && item.en)) {
-                    storyData = parsedData;
-                    currentSentenceIndex = 0;
-                    isMeaningVisible = true;
-                    toggleMeaningButton.classList.remove('toggled');
-                    inputContainer.classList.add('hidden');
-                    readerContainer.classList.remove('hidden');
-                    navigationBar.classList.remove('hidden');
-                    meaningContainer.classList.remove('hidden');
-                    renderSentence();
+                    
+                    const newEntry = {
+                        id: Date.now(),
+                        title: generateTitle(parsedData),
+                        content: parsedData
+                    };
 
-                    // Save the story to local storage
-                    localStorage.setItem('satori-cached-story', input);
+                    library.push(newEntry);
+                    saveLibrary();
+                    loadStoryFromLibrary(newEntry.id);
 
                 } else {
                     showMessage("Invalid JSON format. Please use an array of objects with 'jp' and 'en' keys.");
@@ -327,43 +690,47 @@ Example:
             }
         }
 
-        // Function to copy text to clipboard
         function copyTextToClipboard(text) {
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = text;
-            tempTextArea.style.position = 'fixed'; // Avoid scrolling to bottom
-            tempTextArea.style.left = '-9999px'; // Move off-screen
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.left = '-9999px';
             document.body.appendChild(tempTextArea);
             tempTextArea.focus();
             tempTextArea.select();
+            
+            let success = false;
             try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showMessage("Prompt copied to clipboard!");
-                } else {
-                    showMessage("Failed to copy prompt. Please copy it manually.");
-                }
+                success = document.execCommand('copy');
             } catch (err) {
-                showMessage("Failed to copy prompt. Please copy it manually.");
+                success = false;
             }
             document.body.removeChild(tempTextArea);
+
+            if (success) {
+                const originalText = copyPromptButton.innerText;
+                copyPromptButton.innerText = "Copied!";
+                copyPromptButton.classList.remove('btn-copy-default');
+                copyPromptButton.classList.add('btn-copy-success');
+                
+                setTimeout(() => {
+                    copyPromptButton.innerText = originalText;
+                    copyPromptButton.classList.remove('btn-copy-success');
+                    copyPromptButton.classList.add('btn-copy-default');
+                }, 2000);
+            } else {
+                showMessage("Failed to copy prompt.");
+            }
         }
 
-        function goBack() {
-            readerContainer.classList.add('hidden');
-            navigationBar.classList.add('hidden');
-            inputContainer.classList.remove('hidden');
-        }
+        // --- Event Listeners ---
 
-        loadButton.addEventListener('click', loadStory);
-
-        // Add event listener for the new copy button
-        copyPromptButton.addEventListener('click', () => {
-            copyTextToClipboard(promptText);
-        });
-
-        // Add event listener for the new back button
-        backButton.addEventListener('click', goBack);
+        addNewButton.addEventListener('click', goToInput);
+        cancelInputButton.addEventListener('click', goHome);
+        loadButton.addEventListener('click', loadAndSaveStory);
+        copyPromptButton.addEventListener('click', () => copyTextToClipboard(promptText));
+        
+        backButton.addEventListener('click', goHome); 
 
         nextButton.addEventListener('click', () => {
             if (currentSentenceIndex < storyData.length - 1) {
@@ -392,7 +759,6 @@ Example:
 
         closeMessageButton.addEventListener('click', closeMessage);
 
-        renderSentence();
     </script>
 </body>
 </html>
