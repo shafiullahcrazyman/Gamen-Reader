@@ -479,42 +479,50 @@
 
         const promptText = `Generate a short Japanese story for language learners in JSON format.
 
-Rules:
-- Output ONLY valid JSON. No explanations or extra text.
-- Format it exactly as JSON and wrap it in a triple-backtick code block labeled json so it’s ready to copy.
-- The result must be an array [ ] of objects.
-- Each object must contain exactly two keys: "jp" and "en".
+IMPORTANT OUTPUT RULES:
+1) First, output ONLY the JSON data.
+2) Format it exactly as JSON and wrap it in a triple-backtick code block labeled json so it’s ready to copy.
+3) After the JSON code block ends, output a separate section called "Story Suggestions".
+4) The "Story Suggestions" section must NOT be inside the JSON.
+5) The JSON must remain valid and unchanged.
 
-Title rule:
-- The FIRST object is the title sentence.
-- The title should be very short and simple.
-- It should describe the topic of the story.
-- It will be shown like a normal sentence in the reader.
+JSON STRUCTURE RULES:
+• Output ONLY valid JSON inside the code block.
+• The result must be an array [ ] of objects.
+• Each object must contain exactly two keys: "jp" and "en".
 
-Japanese ("jp") rules:
-- Use natural, polite Japanese.
-- Keep sentences short and beginner-friendly.
-- Use <ruby>漢字<rt>かな</rt></ruby> for ALL kanji.
-- Do NOT use romaji or English words.
+TITLE RULES:
+• The FIRST object is the title sentence.
+• The title must be very short and simple.
+• It should describe the topic of the story.
+• It will be shown like a normal sentence in the reader.
 
-English ("en") rules:
-- Provide a clear, simple English meaning.
+JAPANESE ("jp") RULES:
+• Use natural, polite Japanese.
+• Keep sentences short and beginner friendly.
+• Use <ruby>漢字<rt>かな</rt></ruby> for ALL kanji.
+• Do NOT use romaji.
+• Do NOT use English words.
+• Do NOT omit furigana for any kanji.
 
-General:
-- Total length: 6–9 objects (1 title + story).
-- Avoid complex grammar and rare vocabulary.
+ENGLISH ("en") RULES:
+• Provide a clear and simple English meaning.
+• Keep translations natural and easy to understand.
 
-Example:
-[
-  {
-    "jp": "<ruby>小<rt>ちい</rt></ruby>さな<ruby>町<rt>まち</rt></ruby>の<ruby>生活<rt>せいかつ</rt></ruby>です。",
-    "en": "Life in a small town."
-  },
-  {
-    "jp": "<ruby>私<rt>わたし</rt></ruby>は<ruby>小<rt>ちい</rt></ruby>さな<ruby>町<rt>まち</rt></ruby>に<ruby>住<rt>す</rt></ruby>んでいます。",
-    "en": "I live in a small town."
-  }
-]`;
+GENERAL RULES:
+• Total length must be 6–9 objects (1 title + story sentences).
+• Avoid complex grammar.
+• Avoid rare or advanced vocabulary.
+• Output only valid JSON inside the code block.
+
+After the JSON block, include:
+
+Story Suggestions:
+• Suggest exactly 5 new story topics.
+• Each topic must be suitable for beginner language learners.
+• Keep topics short and clear.
+• Do NOT include JSON in this section.
+• Do NOT repeat the topic used in the story above.`;
         const videoIframeHTML = `<div style="position:relative; width:100%; height:0px; padding-bottom:100.000%"><iframe allow="fullscreen;autoplay" allowfullscreen height="100%" src="https://streamable.com/e/0nwd8k?autoplay=1" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe></div>`;
 
         let storyData = [];
